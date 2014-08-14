@@ -5,7 +5,7 @@
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
-var handleRequest = function(request, response) {
+exports.handler = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
 
@@ -14,22 +14,53 @@ var handleRequest = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-  var statusCode = 200;
-
-  /* Without this line, this server wouldn't work. See the note
-   * below about CORS. */
   var headers = defaultCorsHeaders;
 
   headers['Content-Type'] = "text/plain";
+  
+  if (request.url === '/classes/messages') {
 
-  /* .writeHead() tells our server what HTTP status code to send back */
-  response.writeHead(statusCode, headers);
+    var statusCode = 200;
 
-  /* Make sure to always call response.end() - Node will not send
-   * anything back to the client until you do. The string you pass to
-   * response.end() will be the body of the response - i.e. what shows
-   * up in the browser.*/
-  response.end("Hello, World!");
+    /* Without this line, this server wouldn't work. See the note
+     * below about CORS. */
+
+    /* .writeHead() tells our server what HTTP status code to send back */
+
+    /* Make sure to always call response.end() - Node will not send
+     * anything back to the client until you do. The string you pass to
+     * response.end() will be the body of the response - i.e. what shows
+     * up in the browser.*/
+
+    // if client is sending a post request
+    if( request.method === 'POST'){
+      response.writeHead(201, headers);
+      //turning data to string
+      var allData = '';
+      request.on('data', function(data) {
+        console.log(data);
+        allData += data;
+      });
+      //parse to object and place into results array of messages
+      request.on('end', function() {
+        var post = JSON.parse(allData);
+        messages.results.push(post);
+      });
+    } else {
+      //else (get request)
+      response.writeHead(statusCode, headers);
+    }
+    response.end( JSON.stringify(messages) );
+  } else if(request.url === '/classes/room1'){
+    if(request.method === 'GET'){
+      response.writeHead(200, headers);
+      response.end('something');
+    }
+  } else{
+    //404
+    response.writeHead(404, headers);
+    response.end('Error');
+  }
 };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -42,4 +73,8 @@ var defaultCorsHeaders = {
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, accept",
   "access-control-max-age": 10 // Seconds.
+};
+
+var messages = {
+  results: []
 };
