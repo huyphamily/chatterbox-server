@@ -50,13 +50,33 @@ exports.handler = function(request, response) {
       //else (get request)
       response.writeHead(statusCode, headers);
     }
+    console.log(JSON.stringify(messages));
     response.end( JSON.stringify(messages) );
+
+
+
+  //if url is classes/room
   } else if(request.url === '/classes/room1'){
     if(request.method === 'GET'){
       response.writeHead(200, headers);
-      response.end('something');
+      response.end( JSON.stringify(messagesForRoom) );
+    } else if(request.method === 'POST'){
+      response.writeHead(201, headers);
+      //turning data to string
+      var allData = '';
+      request.on('data', function(data) {
+        console.log(data);
+        allData += data;
+      });
+      //parse to object and place into results array of messages
+      request.on('end', function() {
+        var post = JSON.parse(allData);
+        messagesForRoom.results.push(post);
+      });
+      response.end( JSON.stringify(messagesForRoom) );
     }
-  } else{
+
+  } else {
     //404
     response.writeHead(404, headers);
     response.end('Error');
@@ -78,3 +98,13 @@ var defaultCorsHeaders = {
 var messages = {
   results: []
 };
+
+var messagesForRoom = {
+  results: []
+};
+
+var sample = {
+  name: "Name",
+  message: "hello"
+};
+messages.results.push(sample);
