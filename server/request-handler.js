@@ -16,7 +16,7 @@ exports.handler = function(request, response) {
 
   var headers = defaultCorsHeaders;
 
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
   
   if (request.url === '/classes/messages') {
 
@@ -38,12 +38,13 @@ exports.handler = function(request, response) {
       //turning data to string
       var allData = '';
       request.on('data', function(data) {
-        console.log(data);
         allData += data;
       });
       //parse to object and place into results array of messages
       request.on('end', function() {
         var post = JSON.parse(allData);
+        post.objectId = counter;
+        counter++;
         messages.results.push(post);
       });
     } else {
@@ -65,7 +66,6 @@ exports.handler = function(request, response) {
       //turning data to string
       var allData = '';
       request.on('data', function(data) {
-        console.log(data);
         allData += data;
       });
       //parse to object and place into results array of messages
@@ -104,7 +104,11 @@ var messagesForRoom = {
 };
 
 var sample = {
-  name: "Name",
-  message: "hello"
+  username: "Name",
+  text: "hello",
+  roomname: "lobby",
+  objectId: 1
 };
 messages.results.push(sample);
+
+var counter = 2;
